@@ -6,7 +6,7 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
+      "distribution": "store",
       "ios": {
         "simulator": false,
         "resourceClass": "m-medium"
@@ -22,7 +22,7 @@
       }
     },
     "preview": {
-      "distribution": "internal",
+      "distribution": "store",
       "ios": {
         "resourceClass": "m-medium"
       },
