@@ -5,7 +5,7 @@ import { COLORS } from '../constants/theme';
 export default function SplashScreen() {
   return (
     <View style={styles.container}>
-      <Image source={require('../../logo/logo_crisp.png')} style={styles.logo} resizeMode="contain" />
+      <Image source={require('../../logo/logo crisp.png')} style={styles.logo} resizeMode="contain" />
       <Text style={styles.tagline}>Your marketplace, delivered.</Text>
       <ActivityIndicator color={COLORS.primary} size="large" style={{ marginTop: 40 }} />
     </View>
