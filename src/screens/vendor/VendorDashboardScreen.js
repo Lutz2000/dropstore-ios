@@ -921,7 +921,7 @@ const styles = StyleSheet.create({
     fontSize: 14
   },
 
-const styles = StyleSheet.create({
+
   container   : { flex: 1, backgroundColor: '#f9f9f9' },
   header      : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   greeting    : { fontSize: 22, fontWeight: '800', color: '#1a1a1a' },
