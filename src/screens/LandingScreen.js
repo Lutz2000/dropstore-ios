@@ -2,7 +2,7 @@ import React from 'react';
 import { Platform,
   View, Text, Image, TouchableOpacity, StyleSheet, StatusBar,
 } from 'react-native';
-import { Platform, COLORS, SIZES, FONTS } from '../constants/theme';
+import { COLORS, SIZES, FONTS } from '../constants/theme';
 
 export default function LandingScreen({ navigation }) {
   return (
