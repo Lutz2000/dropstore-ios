@@ -4,7 +4,7 @@ import { Platform,
   TouchableOpacity, Linking, StatusBar,
 } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { Platform, COLORS } from '../constants/theme';
+import { COLORS } from '../constants/theme';
 
 const HERO_IMG = 'https://images.pexels.com/photos/35472471/pexels-photo-35472471.jpeg?auto=compress&cs=tinysrgb&w=800&dpr=1';
 const MARKET_IMG = 'https://images.pexels.com/photos/6193209/pexels-photo-6193209.jpeg?auto=compress&cs=tinysrgb&w=800&dpr=1';
