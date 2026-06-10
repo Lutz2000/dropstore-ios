@@ -13,51 +13,80 @@ export function AuthProvider({ children }) {
   const [token, setToken]     = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ── Logout (also called by 401 interceptor) ───────────────────
+  // ── Safe SecureStore helpers to prevent iOS Simulator crash ──
+  const safeSetItem = async (key, value) => {
+    try {
+      await SecureStore.setItemAsync(key, value);
+    } catch (e) {
+      console.warn(`[Auth] SecureStore.setItem failed for ${key}:`, e.message);
+    }
+  };
+
+  const safeGetItem = async (key) => {
+    try {
+      return await SecureStore.getItemAsync(key);
+    } catch (e) {
+      console.warn(`[Auth] SecureStore.getItem failed for ${key}:`, e.message);
+      return null;
+    }
+  };
+
+  const safeDeleteItem = async (key) => {
+    try {
+      await SecureStore.deleteItemAsync(key);
+    } catch (e) {
+      console.warn(`[Auth] SecureStore.deleteItem failed for ${key}:`, e.message);
+    }
+  };
+
+  // ── Logout ───────────────────
   const logout = useCallback(async () => {
     try { 
       await client.post('/auth/logout'); 
     } catch (_) {}
     
-    // Clear token out of default Axios instances
     delete client.defaults.headers.common['Authorization'];
     
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
-    await SecureStore.deleteItemAsync(USER_KEY);
-    await clearAllCache();
+    await safeDeleteItem(TOKEN_KEY);
+    await safeDeleteItem(USER_KEY);
+    
+    try { await clearAllCache(); } catch (_) {}
+    
     setToken(null);
     setUser(null);
   }, []);
 
-  // Register logout as the 401 handler so the axios interceptor can call it
   useEffect(() => {
     registerUnauthHandler(logout);
   }, [logout]);
 
-  // ── Bootstrap: restore session from secure storage ────────────
+  // ── Bootstrap: restore session ────────────
   useEffect(() => {
     (async () => {
       try {
-        const t = await SecureStore.getItemAsync(TOKEN_KEY);
-        const u = await SecureStore.getItemAsync(USER_KEY);
+        const t = await safeGetItem(TOKEN_KEY);
+        const u = await safeGetItem(USER_KEY);
         
         if (t && u) {
-          // CRITICAL FIX: Re-attach the auth header to axios on app launch
           client.defaults.headers.common['Authorization'] = `Bearer ${t}`;
           setToken(t);
-          setUser(JSON.parse(u));
+          try {
+            setUser(JSON.parse(u));
+          } catch {
+            await safeDeleteItem(USER_KEY);
+          }
         }
       } catch (e) {
-        console.warn('[DropStore Auth] Corrupted storage — resetting fresh.', e);
-        await SecureStore.deleteItemAsync(TOKEN_KEY);
-        await SecureStore.deleteItemAsync(USER_KEY);
+        console.warn('[DropStore Auth] Bootstrap error:', e);
+        await safeDeleteItem(TOKEN_KEY);
+        await safeDeleteItem(USER_KEY);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  // ── Proactive token refresh ────────────────────────────────────
+  // ── Token refresh ────────────────────────────────────
   useEffect(() => {
     if (!token) return;
     const id = setInterval(async () => {
@@ -65,12 +94,11 @@ export function AuthProvider({ children }) {
         const res = await client.post('/auth/refresh');
         const newToken = res.data.token;
         
-        // Sync header configuration changes
         client.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-        await SecureStore.setItemAsync(TOKEN_KEY, newToken);
+        await safeSetItem(TOKEN_KEY, newToken);
         setToken(newToken);
       } catch {
-        // Refresh failed — the 401 interceptor in client.js handles cleanup
+        // 401 interceptor handles logout
       }
     }, REFRESH_INTERVAL_MS);
     return () => clearInterval(id);
@@ -78,50 +106,63 @@ export function AuthProvider({ children }) {
 
   // ── Auth actions ───────────────────────────────────────────────
   const login = async (emailOrUsername, password) => {
-    // CRITICAL FIX: Accepts standard string identifier inputs cleanly
-    const res = await client.post('/auth/login', { 
-      identifier: emailOrUsername, 
-      email: emailOrUsername, // Backup payload entry to support both backend setups safely
-      password 
-    });
-    
-    const { token: tok, user: usr } = res.data;
-    
-    if (tok && usr) {
-      // CRITICAL FIX: Immediately mount token to axios to stop 401 instant logouts
-      client.defaults.headers.common['Authorization'] = `Bearer ${tok}`;
+    try {
+      const res = await client.post('/auth/login', { 
+        identifier: emailOrUsername, 
+        email: emailOrUsername,
+        password 
+      });
       
-      await SecureStore.setItemAsync(TOKEN_KEY, tok);
-      await SecureStore.setItemAsync(USER_KEY, JSON.stringify(usr));
-      setToken(tok);
-      setUser(usr);
-      return usr;
-    } else {
-      throw new Error("Malformed login structure received from backend.");
+      const { token: tok, user: usr } = res.data;
+      
+      if (tok && usr) {
+        client.defaults.headers.common['Authorization'] = `Bearer ${tok}`;
+        
+        await safeSetItem(TOKEN_KEY, tok);
+        await safeSetItem(USER_KEY, JSON.stringify(usr));
+        
+        setToken(tok);
+        setUser(usr);
+        return usr;
+      } else {
+        throw new Error("Malformed login response from server.");
+      }
+    } catch (e) {
+      console.log('LOGIN ERROR:', e?.response?.status, e?.response?.data, e?.message);
+      throw e; // Let LoginScreen show Alert
     }
   };
 
   const register = async (data) => {
-    const res = await client.post('/auth/register', data);
-    const { token: tok, user: usr } = res.data;
-    
-    if (tok && usr) {
-      client.defaults.headers.common['Authorization'] = `Bearer ${tok}`;
-      await SecureStore.setItemAsync(TOKEN_KEY, tok);
-      await SecureStore.setItemAsync(USER_KEY, JSON.stringify(usr));
-      setToken(tok);
-      setUser(usr);
-      return usr;
-    } else {
-      throw new Error("Malformed registration structure received from backend.");
+    try {
+      const res = await client.post('/auth/register', data);
+      const { token: tok, user: usr } = res.data;
+      
+      if (tok && usr) {
+        client.defaults.headers.common['Authorization'] = `Bearer ${tok}`;
+        await safeSetItem(TOKEN_KEY, tok);
+        await safeSetItem(USER_KEY, JSON.stringify(usr));
+        setToken(tok);
+        setUser(usr);
+        return usr;
+      } else {
+        throw new Error("Malformed registration response from server.");
+      }
+    } catch (e) {
+      console.log('REGISTER ERROR:', e?.response?.status, e?.response?.data, e?.message);
+      throw e;
     }
   };
 
   const refreshUser = async () => {
-    const res = await client.get('/auth/me');
-    const usr = res.data;
-    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(usr));
-    setUser(usr);
+    try {
+      const res = await client.get('/auth/me');
+      const usr = res.data;
+      await safeSetItem(USER_KEY, JSON.stringify(usr));
+      setUser(usr);
+    } catch (e) {
+      console.log('Refresh user error:', e?.message);
+    }
   };
 
   return (
