@@ -3,9 +3,6 @@ import * as SecureStore from 'expo-secure-store';
 import client, { TOKEN_KEY, registerUnauthHandler } from '../api/client';
 import { clearAllCache } from '../api/cache';
 
-// Token refresh schedule: refresh 5 minutes before SANCTUM_TOKEN_EXPIRATION.
-// If you set SANCTUM_TOKEN_EXPIRATION=10080 (7 days) in .env, refresh every ~6.9 days.
-// Default here is 6 days (in ms) which is safe for a 7-day server-side expiry.
 const REFRESH_INTERVAL_MS = 6 * 24 * 60 * 60 * 1000; // 6 days
 const USER_KEY = 'dropstore_user';
 
@@ -18,7 +15,13 @@ export function AuthProvider({ children }) {
 
   // ── Logout (also called by 401 interceptor) ───────────────────
   const logout = useCallback(async () => {
-    try { await client.post('/auth/logout'); } catch (_) {}
+    try { 
+      await client.post('/auth/logout'); 
+    } catch (_) {}
+    
+    // Clear token out of default Axios instances
+    delete client.defaults.headers.common['Authorization'];
+    
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     await SecureStore.deleteItemAsync(USER_KEY);
     await clearAllCache();
@@ -37,12 +40,15 @@ export function AuthProvider({ children }) {
       try {
         const t = await SecureStore.getItemAsync(TOKEN_KEY);
         const u = await SecureStore.getItemAsync(USER_KEY);
+        
         if (t && u) {
+          // CRITICAL FIX: Re-attach the auth header to axios on app launch
+          client.defaults.headers.common['Authorization'] = `Bearer ${t}`;
           setToken(t);
           setUser(JSON.parse(u));
         }
-      } catch {
-        // Corrupted storage — start fresh
+      } catch (e) {
+        console.warn('[DropStore Auth] Corrupted storage — resetting fresh.', e);
         await SecureStore.deleteItemAsync(TOKEN_KEY);
         await SecureStore.deleteItemAsync(USER_KEY);
       } finally {
@@ -52,42 +58,63 @@ export function AuthProvider({ children }) {
   }, []);
 
   // ── Proactive token refresh ────────────────────────────────────
-  // Runs on a timer so the token is rotated before the server expires it.
-  // Only active while the user is logged in.
   useEffect(() => {
     if (!token) return;
     const id = setInterval(async () => {
       try {
         const res = await client.post('/auth/refresh');
         const newToken = res.data.token;
+        
+        // Sync header configuration changes
+        client.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
         await SecureStore.setItemAsync(TOKEN_KEY, newToken);
         setToken(newToken);
       } catch {
-        // Refresh failed — the 401 interceptor in client.js will handle cleanup
+        // Refresh failed — the 401 interceptor in client.js handles cleanup
       }
     }, REFRESH_INTERVAL_MS);
     return () => clearInterval(id);
   }, [token]);
 
   // ── Auth actions ───────────────────────────────────────────────
-  const login = async (identifier, password) => {
-    const res = await client.post('/auth/login', { identifier, password });
+  const login = async (emailOrUsername, password) => {
+    // CRITICAL FIX: Accepts standard string identifier inputs cleanly
+    const res = await client.post('/auth/login', { 
+      identifier: emailOrUsername, 
+      email: emailOrUsername, // Backup payload entry to support both backend setups safely
+      password 
+    });
+    
     const { token: tok, user: usr } = res.data;
-    await SecureStore.setItemAsync(TOKEN_KEY, tok);
-    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(usr));
-    setToken(tok);
-    setUser(usr);
-    return usr;
+    
+    if (tok && usr) {
+      // CRITICAL FIX: Immediately mount token to axios to stop 401 instant logouts
+      client.defaults.headers.common['Authorization'] = `Bearer ${tok}`;
+      
+      await SecureStore.setItemAsync(TOKEN_KEY, tok);
+      await SecureStore.setItemAsync(USER_KEY, JSON.stringify(usr));
+      setToken(tok);
+      setUser(usr);
+      return usr;
+    } else {
+      throw new Error("Malformed login structure received from backend.");
+    }
   };
 
   const register = async (data) => {
     const res = await client.post('/auth/register', data);
     const { token: tok, user: usr } = res.data;
-    await SecureStore.setItemAsync(TOKEN_KEY, tok);
-    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(usr));
-    setToken(tok);
-    setUser(usr);
-    return usr;
+    
+    if (tok && usr) {
+      client.defaults.headers.common['Authorization'] = `Bearer ${tok}`;
+      await SecureStore.setItemAsync(TOKEN_KEY, tok);
+      await SecureStore.setItemAsync(USER_KEY, JSON.stringify(usr));
+      setToken(tok);
+      setUser(usr);
+      return usr;
+    } else {
+      throw new Error("Malformed registration structure received from backend.");
+    }
   };
 
   const refreshUser = async () => {
@@ -105,4 +132,3 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
-
