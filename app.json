@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.dropmartug.dropstore",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "requireFullScreen": false,
       "infoPlist": {
         "NSCameraUsageDescription": "DropStore needs camera access to take product photos.",
