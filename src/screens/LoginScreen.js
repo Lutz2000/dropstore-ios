@@ -89,16 +89,24 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleLogin = async () => {
-    if (!email || !pass) { Alert.alert('Error', 'Please fill in all fields'); return; }
+    // Basic validation check
+    if (!email.trim() || !pass) { 
+      Alert.alert('Error', 'Please fill in all fields'); 
+      return; 
+    }
+    
     setLoading(true);
     try {
+      // Execute global auth state action
       await login(email.trim(), pass);
-      // Don't manually navigate — AppNavigator will reactively update based on user state
-      // This avoids race conditions where the component redirects before AuthContext updates
+      // AppNavigator instantly switches stack states when context resolves 
     } catch (e) {
-      const msg = e?.response?.data?.message || 'Invalid credentials.';
+      console.error('[DropStore Login Stack Log Error]:', e);
+      const msg = e?.response?.data?.message || 'Invalid credentials or network failure.';
       Alert.alert('Login Failed', msg);
-    } finally { setLoading(false); }
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   return (
@@ -135,9 +143,11 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.btn} onPress={handleLogin} disabled={loading}>
-            {loading
-              ? <ActivityIndicator color="#fff" />
-              : <Text style={styles.btnText}>Sign In</Text>}
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.btnText}>Sign In</Text>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -146,14 +156,14 @@ export default function LoginScreen({ navigation }) {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* ── Forgot Password Modal ────────────────────────────── */}
+      {/* ── Forgot Password Modal ── */}
       <Modal visible={fpVisible} animationType="slide" transparent onRequestClose={closeForgot}>
         <View style={styles.modalOverlay}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}>
             <View style={styles.modalCard}>
               {/* Header */}
               <View style={styles.modalHeader}>
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.modalTitle}>Reset Password</Text>
                   <Text style={styles.modalSub}>
                     {fpStep === 1
@@ -179,9 +189,11 @@ export default function LoginScreen({ navigation }) {
                     placeholderTextColor="#aaa"
                   />
                   <TouchableOpacity style={[styles.btn, { marginTop: 20 }]} onPress={handleSendOtp} disabled={fpLoading}>
-                    {fpLoading
-                      ? <ActivityIndicator color="#fff" />
-                      : <Text style={styles.btnText}>Send OTP</Text>}
+                    {fpLoading ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.btnText}>Send OTP</Text>
+                    )}
                   </TouchableOpacity>
                 </>
               )}
@@ -230,9 +242,11 @@ export default function LoginScreen({ navigation }) {
                       </View>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.btn, { flex: 1 }]} onPress={handleResetPassword} disabled={fpLoading}>
-                      {fpLoading
-                        ? <ActivityIndicator color="#fff" />
-                        : <Text style={styles.btnText}>Reset Password</Text>}
+                      {fpLoading ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <Text style={styles.btnText}>Reset Password</Text>
+                      )}
                     </TouchableOpacity>
                   </View>
                 </>
