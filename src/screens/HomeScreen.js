@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, Image,
   TextInput, ActivityIndicator, RefreshControl, ScrollView, Modal,
+  SafeAreaView, StatusBar
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -18,7 +19,6 @@ function CategoryPill({ item, selected, onPress }) {
 }
 
 function ProductCard({ item, navigation }) {
-  // primary_image is a full URL string returned by the API
   const imgUri = item.primary_image || `${BASE_URL}/images/placeholder.png`;
   const img = { uri: imgUri };
 
@@ -43,7 +43,10 @@ function ProductCard({ item, navigation }) {
           <Text style={styles.cardVendor} numberOfLines={1}>{item.vendor?.name || ''}</Text>
           {item.vendor?.is_verified && (
             <View style={styles.verifiedBadge}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}><MaterialCommunityIcons name="medal" size={12} color="#f59e0b" /><Text style={styles.verifiedText}>Verified</Text></View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                <MaterialCommunityIcons name="medal" size={12} color="#f59e0b" />
+                <Text style={styles.verifiedText}>Verified</Text>
+              </View>
             </View>
           )}
         </View>
@@ -54,7 +57,6 @@ function ProductCard({ item, navigation }) {
 
 export default function HomeScreen({ navigation }) {
   const { user } = useAuth();
-  const bcastLoadedRef = React.useRef(false);
   const [categories, setCategories] = useState([]);
   const [products, setProducts]     = useState([]);
   const [catId, setCatId]           = useState(null);
@@ -94,9 +96,8 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     fetchCategories();
-    // Focus listener ensures popup fires even when tab was already active
     const unsubscribe = navigation.addListener('focus', () => {
-      if (!user) return; // guest — skip, route requires auth
+      if (!user) return;
       loadBroadcastMessages();
     });
     return unsubscribe;
@@ -147,7 +148,6 @@ export default function HomeScreen({ navigation }) {
 
   const onSearchChange = (text) => {
     setSearch(text);
-    // Debounce: fire 500 ms after the user stops typing
     clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => setDebouncedSearch(text), 500);
   };
@@ -178,27 +178,27 @@ export default function HomeScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Search bar */}
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      
+      {/* Search Input Bar */}
       <View style={styles.searchWrap}>
         <View style={styles.searchRow}>
+          <MaterialCommunityIcons name="magnify" size={20} color="#94a3b8" />
           <TextInput
             style={styles.search}
+            placeholder="Search products..."
+            placeholderTextColor="#94a3b8"
             value={search}
             onChangeText={onSearchChange}
-            placeholder="Search products, brands, vendors..."
-            placeholderTextColor="#aaa"
-            returnKeyType="search"
             onSubmitEditing={onSearchSubmit}
+            returnKeyType="search"
           />
           {search.length > 0 && (
-            <TouchableOpacity onPress={onSearchClear} style={styles.clearBtn} activeOpacity={0.7}>
-              <MaterialCommunityIcons name="close" size={18} color="#999" />
+            <TouchableOpacity style={styles.clearBtn} onPress={onSearchClear}>
+              <Text style={styles.clearBtnText}>Clear</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity onPress={onSearchSubmit} style={styles.searchBtn} activeOpacity={0.7}>
-            <MaterialCommunityIcons name="magnify" size={20} color={COLORS.primary} />
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -255,13 +255,16 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.bcastCounter}>{bcastIdx + 1} / {bcastQueue.length}</Text>
               )}
               <TouchableOpacity style={styles.bcastBtn} onPress={dismissBcast}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}><MaterialCommunityIcons name="check" size={16} color="#fff" /><Text style={styles.bcastBtnText}>Got it</Text></View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                  <MaterialCommunityIcons name="check" size={16} color="#fff" />
+                  <Text style={styles.bcastBtnText}>Got it</Text>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
