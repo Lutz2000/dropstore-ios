@@ -25,6 +25,8 @@ export default function ProductDetailScreen({ route, navigation }) {
   const [offerPrice, setOfferPrice] = useState('');
   const [offerNote, setOfferNote]   = useState('');
   const [sendingOffer, setSendingOffer] = useState(false);
+  const [offerSentModal, setOfferSentModal] = useState(false);
+  const [offerThreadInfo, setOfferThreadInfo] = useState(null);
 
   // Reviews state
   const [reviews, setReviews]               = useState([]);
@@ -175,8 +177,10 @@ export default function ProductDetailScreen({ route, navigation }) {
       });
       
       setOfferModal(false);
-      Alert.alert('Success', 'Product added to cart and offer sent!');
-      navigation.navigate('OfferChat', { threadId: res.data.thread.id, productName: product.name });
+      setOfferSentModal(true);
+      setSendingOffer(false);
+      // Store the thread info for navigation after closing modal
+      setOfferThreadInfo({ threadId: res.data.thread.id, productName: product.name });
     } catch (e) {
       Alert.alert('Error', e?.response?.data?.message || 'Could not send offer.');
     } finally {
@@ -335,7 +339,7 @@ export default function ProductDetailScreen({ route, navigation }) {
             <Text style={styles.navBtnLabel}>Dashboard</Text>
           </TouchableOpacity>
           <View style={styles.navDivider} />
-          <TouchableOpacity style={styles.navBtn} onPress={() => navigation.navigate('Landing')}>
+          <TouchableOpacity style={styles.navBtn} onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}>
             <MaterialCommunityIcons name="earth" size={16} color="#555" />
             <Text style={styles.navBtnLabel}>Homepage</Text>
           </TouchableOpacity>
@@ -562,6 +566,40 @@ export default function ProductDetailScreen({ route, navigation }) {
         </View>
       </KeyboardAvoidingView>
     </Modal>
+
+    {/* Offer Sent Success Modal */}
+    <Modal
+      visible={offerSentModal}
+      transparent
+      animationType="fade"
+      onRequestClose={() => {}}
+    >
+      <View style={styles.offerSentOverlay}>
+        <View style={styles.offerSentBox}>
+          <View style={styles.offerSentIconWrap}>
+            <MaterialCommunityIcons name="check-circle" size={24} color="#fff" />
+          </View>
+          <Text style={styles.offerSentTitle}>Offer has been sent!</Text>
+          <Text style={styles.offerSentText}>
+            Your offer has been sent to the vendor. They will review it and respond shortly.
+          </Text>
+          <TouchableOpacity
+            style={styles.offerSentBtn}
+            onPress={() => {
+              setOfferSentModal(false);
+              if (offerThreadInfo) {
+                navigation.navigate('OfferChat', {
+                  threadId: offerThreadInfo.threadId,
+                  productName: offerThreadInfo.productName,
+                });
+              }
+            }}
+          >
+            <Text style={styles.offerSentBtnText}>View My Offers</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
     </>
   );
 }
@@ -668,4 +706,57 @@ const styles = StyleSheet.create({
   rvLoadMore    : { borderWidth: 1, borderStyle: 'dashed', borderColor: '#e2e8f0', borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 4 },
   rvLoadMoreText: { color: '#64748b', fontSize: 13 },
   rvEmpty       : { textAlign: 'center', color: '#94a3b8', fontSize: 13, paddingVertical: 20 },
+
+  // Offer Sent Success Modal
+  offerSentOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15,23,42,0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  offerSentBox: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 340,
+  },
+  offerSentIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  offerSentTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  offerSentText: {
+    fontSize: 14,
+    color: '#64748b',
+    lineHeight: 22,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  offerSentBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    width: '100%',
+    alignItems: 'center',
+  },
+  offerSentBtnText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
+  },
 });

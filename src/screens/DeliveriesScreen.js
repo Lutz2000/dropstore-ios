@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import client from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { COLORS } from '../constants/theme';
 
 const STATUS_COLOR = {
@@ -29,7 +30,7 @@ export default function DeliveriesScreen({ navigation }) {
       const res = await client.get(endpoint);
       setItems(res.data.data || res.data);
     } catch (e) {
-      if (e?.response?.status === 401) navigation.replace('Login');
+      
     } finally { setLoading(false); }
   }, [isVendor]);
 

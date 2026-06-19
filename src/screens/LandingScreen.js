@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform,
+import {
   View, Text, Image, TouchableOpacity, StyleSheet, StatusBar,
 } from 'react-native';
 import { COLORS, SIZES, FONTS } from '../constants/theme';
@@ -7,7 +7,7 @@ import { COLORS, SIZES, FONTS } from '../constants/theme';
 export default function LandingScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Platform.OS === 'android' ? COLORS.black : undefined} />
+      <StatusBar barStyle="light-content" />
       <View style={styles.hero}>
         <Image source={require('../../logo/logo crisp.png')} style={styles.logo} resizeMode="contain" />
         <Text style={styles.tagline}>Shop from verified vendors.{'\n'}Delivered to your door.</Text>

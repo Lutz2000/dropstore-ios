@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Alert, RefreshControl,
 } from 'react-native';
 import client, { BASE_URL } from '../api/client';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { COLORS } from '../constants/theme';
 
 export default function WishlistScreen({ navigation }) {
@@ -16,7 +17,7 @@ export default function WishlistScreen({ navigation }) {
       const res = await client.get('/wishlist');
       setItems(res.data.data || res.data);
     } catch (e) {
-      if (e?.response?.status === 401) navigation.replace('Login');
+      
     } finally { setLoading(false); }
   }, []);
 

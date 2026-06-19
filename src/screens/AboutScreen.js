@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform,
+import {
   View, Text, ScrollView, StyleSheet, Image,
   TouchableOpacity, Linking, StatusBar,
 } from 'react-native';
@@ -35,7 +35,7 @@ const STATS = [
 export default function AboutScreen({ navigation }) {
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={Platform.OS === 'android' ? '#0f172a' : undefined} />
+      <StatusBar barStyle="light-content" backgroundColor="#0f172a" />
 
       <ScrollView showsVerticalScrollIndicator={false} bounces>
 

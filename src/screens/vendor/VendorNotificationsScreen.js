@@ -17,7 +17,7 @@ export default function VendorNotificationsScreen({ navigation }) {
       const res = await client.get('/vendor/notifications');
       setNotifications(res.data.data || res.data);
     } catch (e) {
-      if (e?.response?.status === 401) navigation.replace('Login');
+      
     } finally { setLoading(false); }
   }, []);
 

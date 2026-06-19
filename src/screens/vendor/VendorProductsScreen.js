@@ -25,7 +25,7 @@ export default function VendorProductsScreen({ navigation }) {
       const res = await client.get('/vendor/products');
       setProducts(res.data.data || res.data);
     } catch (e) {
-      if (e?.response?.status === 401) navigation.replace('Landing');
+      
     } finally { setLoading(false); }
   }, [navigation]);
 

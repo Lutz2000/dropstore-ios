@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Platform,
+import {
   View, Text, ScrollView, StyleSheet, Image,
   TouchableOpacity, Linking, StatusBar,
 } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import {COLORS } from '../constants/theme';
+import { COLORS } from '../constants/theme';
 
 const HERO_IMG = 'https://images.pexels.com/photos/6169665/pexels-photo-6169665.jpeg?auto=compress&cs=tinysrgb&w=800&dpr=1';
 
@@ -172,7 +172,7 @@ export default function PoliciesScreen({ navigation }) {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={Platform.OS === 'android' ? '#0f172a' : undefined} />
+      <StatusBar barStyle="light-content" backgroundColor="#0f172a" />
 
       <ScrollView showsVerticalScrollIndicator={false} bounces>
 

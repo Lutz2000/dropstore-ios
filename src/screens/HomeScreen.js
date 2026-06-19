@@ -2,13 +2,15 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, Image,
   TextInput, ActivityIndicator, RefreshControl, ScrollView, Modal,
-  SafeAreaView, StatusBar
+  Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import client, { BASE_URL } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { COLORS } from '../constants/theme';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 function CategoryPill({ item, selected, onPress }) {
   return (
@@ -19,6 +21,7 @@ function CategoryPill({ item, selected, onPress }) {
 }
 
 function ProductCard({ item, navigation }) {
+  // primary_image is a full URL string returned by the API
   const imgUri = item.primary_image || `${BASE_URL}/images/placeholder.png`;
   const img = { uri: imgUri };
 
@@ -43,10 +46,7 @@ function ProductCard({ item, navigation }) {
           <Text style={styles.cardVendor} numberOfLines={1}>{item.vendor?.name || ''}</Text>
           {item.vendor?.is_verified && (
             <View style={styles.verifiedBadge}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                <MaterialCommunityIcons name="medal" size={12} color="#f59e0b" />
-                <Text style={styles.verifiedText}>Verified</Text>
-              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}><MaterialCommunityIcons name="medal" size={12} color="#f59e0b" /><Text style={styles.verifiedText}>Verified</Text></View>
             </View>
           )}
         </View>
@@ -57,6 +57,7 @@ function ProductCard({ item, navigation }) {
 
 export default function HomeScreen({ navigation }) {
   const { user } = useAuth();
+  const bcastLoadedRef = React.useRef(false);
   const [categories, setCategories] = useState([]);
   const [products, setProducts]     = useState([]);
   const [catId, setCatId]           = useState(null);
@@ -67,6 +68,10 @@ export default function HomeScreen({ navigation }) {
   const [lastPage, setLastPage]     = useState(1);
   const [loading, setLoading]       = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  // Recommendations
+  const [recommendations, setRecommendations] = useState([]);
+  const [trending, setTrending] = useState([]);
+  const [recsLoading, setRecsLoading] = useState(false);
 
   // Broadcast messages
   const [bcastQueue, setBcastQueue] = useState([]);
@@ -94,10 +99,25 @@ export default function HomeScreen({ navigation }) {
     } catch (_) {} finally { setLoading(false); }
   }, []);
 
-  useEffect(() => {
+  const fetchRecommendations = async () => {
+    setRecsLoading(true);
+    try {
+      const res = await client.get('/recommendations');
+      setRecommendations(res.data.recommended || []);
+      setTrending(res.data.trending || []);
+    } catch (e) {
+      console.warn('[DropStore] Recommendations error:', e?.response?.status, e?.message);
+    } finally {
+      setRecsLoading(false);
+    }
+  };
+
+    useEffect(() => {
     fetchCategories();
+    fetchRecommendations();          // load recommendations on first mount
+    // Focus listener ensures popup fires even when tab was already active
     const unsubscribe = navigation.addListener('focus', () => {
-      if (!user) return;
+      if (!user) return; // guest — skip, route requires auth
       loadBroadcastMessages();
     });
     return unsubscribe;
@@ -148,6 +168,7 @@ export default function HomeScreen({ navigation }) {
 
   const onSearchChange = (text) => {
     setSearch(text);
+    // Debounce: fire 500 ms after the user stops typing
     clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => setDebouncedSearch(text), 500);
   };
@@ -168,7 +189,65 @@ export default function HomeScreen({ navigation }) {
     setPage(1);
     setProducts([]);
     await fetchProducts({ reset: true, currentPage: 1, currentCatId: catId, currentSearch: debouncedSearch });
+    fetchRecommendations();
     setRefreshing(false);
+  };
+
+  // Render recommendation row (landscape horizontal scroll)
+  const renderRecommendationRow = ({ item, index }) => {
+    const subcategory = item.subcategory;
+    const products = item.products || [];
+    return (
+      <View style={styles.recSection}>
+        <View style={styles.recHeader}>
+          <View style={styles.recTitleRow}>
+            <View style={styles.recTitleDot} />
+            <Text style={styles.recTitle}>{subcategory?.name || 'Category'}</Text>
+          </View>
+          <TouchableOpacity onPress={() => null}>
+            <Text style={styles.recSeeAll}>See all <MaterialCommunityIcons name="chevron-right" size={14} /></Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recScroll}>
+          {products.slice(0, 8).map((product, i) => (
+            <TouchableOpacity key={i} style={styles.recCard} onPress={() => navigation.navigate('ProductDetail', { id: product.id })}>
+              <View style={styles.recImgWrap}>
+                <Image source={{ uri: product.primary_image || `${BASE_URL}/images/placeholder.png` }} style={styles.recImg} />
+                {product.is_sold_out ? (
+                  <View style={styles.recSoldBadge}><Text style={styles.recSoldText}>SOLD</Text></View>
+                ) : product.discount_percent > 0 ? (
+                  <View style={styles.recBadge}><Text style={styles.recBadgeText}>-{product.discount_percent}%</Text></View>
+                ) : null}
+              </View>
+              <View style={styles.recCardBody}>
+                <Text style={styles.recCardName} numberOfLines={2}>{product.name}</Text>
+                <Text style={styles.recCardPrice}>UGX {Number(product.final_price || product.price).toLocaleString()}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+
+  // Render trending product (normal grid)
+  const renderTrendingItem = ({ item }) => {
+    return (
+      <TouchableOpacity style={styles.trendCard} onPress={() => navigation.navigate('ProductDetail', { id: item.id })}>
+        <View>
+          <Image source={{ uri: item.primary_image || `${BASE_URL}/images/placeholder.png` }} style={styles.trendImg} />
+          {item.is_sold_out ? (
+            <View style={styles.trendSoldBadge}><Text style={styles.trendSoldText}>SOLD</Text></View>
+          ) : item.discount_percent > 0 ? (
+            <View style={styles.trendBadge}><Text style={styles.trendBadgeText}>-{item.discount_percent}%</Text></View>
+          ) : null}
+        </View>
+        <View style={styles.trendCardBody}>
+          <Text style={styles.trendCardName} numberOfLines={2}>{item.name}</Text>
+          <Text style={styles.trendCardPrice}>UGX {Number(item.final_price || item.price).toLocaleString()}</Text>
+        </View>
+      </TouchableOpacity>
+    );
   };
 
   const loadMore = () => {
@@ -178,27 +257,27 @@ export default function HomeScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      
-      {/* Search Input Bar */}
+    <View style={styles.container}>
+      {/* Search bar */}
       <View style={styles.searchWrap}>
         <View style={styles.searchRow}>
-          <MaterialCommunityIcons name="magnify" size={20} color="#94a3b8" />
           <TextInput
             style={styles.search}
-            placeholder="Search products..."
-            placeholderTextColor="#94a3b8"
             value={search}
             onChangeText={onSearchChange}
-            onSubmitEditing={onSearchSubmit}
+            placeholder="Search products, brands, vendors..."
+            placeholderTextColor="#aaa"
             returnKeyType="search"
+            onSubmitEditing={onSearchSubmit}
           />
           {search.length > 0 && (
-            <TouchableOpacity style={styles.clearBtn} onPress={onSearchClear}>
-              <Text style={styles.clearBtnText}>Clear</Text>
+            <TouchableOpacity onPress={onSearchClear} style={styles.clearBtn} activeOpacity={0.7}>
+              <MaterialCommunityIcons name="close" size={18} color="#999" />
             </TouchableOpacity>
           )}
+          <TouchableOpacity onPress={onSearchSubmit} style={styles.searchBtn} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="magnify" size={20} color={COLORS.primary} />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -225,6 +304,35 @@ export default function HomeScreen({ navigation }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} />}
         ListFooterComponent={() => loading ? <ActivityIndicator color={COLORS.primary} style={{ margin: 16 }} /> : null}
         ListEmptyComponent={() => !loading ? <Text style={styles.empty}>No products found.</Text> : null}
+        ListHeaderComponent={
+          // Only show recommendations on homepage (no category/search filter)
+          !catId && !debouncedSearch ? (
+            <View>
+              {/* Recommended for you section */}
+              {recommendations.length > 0 && (
+                <View>
+                  <View style={styles.recSectionTitle}>
+                    <MaterialCommunityIcons name="star-four" size={18} color={COLORS.primary} />
+                    <Text style={styles.recSectionTitleText}>Recommended for You</Text>
+                  </View>
+                  {recommendations.slice(0, 3).map((rec, idx) => renderRecommendationRow({ item: rec, index: idx }))}
+                </View>
+              )}
+              {/* Trends section */}
+              {trending.length > 0 && (
+                <View style={styles.trendsSection}>
+                  <View style={styles.recSectionTitle}>
+                    <MaterialCommunityIcons name="fire" size={18} color="#ef4444" />
+                    <Text style={[styles.recSectionTitleText, { color: '#ef4444' }]}>Trends</Text>
+                  </View>
+                  <View style={styles.trendsGrid}>
+                    {trending.slice(0, 12).map((item) => renderTrendingItem({ item }))}
+                  </View>
+                </View>
+              )}
+            </View>
+          ) : null
+        }
       />
 
       {/* ── Broadcast Message Popup ── */}
@@ -255,16 +363,13 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.bcastCounter}>{bcastIdx + 1} / {bcastQueue.length}</Text>
               )}
               <TouchableOpacity style={styles.bcastBtn} onPress={dismissBcast}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                  <MaterialCommunityIcons name="check" size={16} color="#fff" />
-                  <Text style={styles.bcastBtnText}>Got it</Text>
-                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}><MaterialCommunityIcons name="check" size={16} color="#fff" /><Text style={styles.bcastBtnText}>Got it</Text></View>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -314,4 +419,38 @@ const styles = StyleSheet.create({
   bcastCounter  : { fontSize: 12, color: '#94a3b8', fontWeight: '600', marginRight: 'auto' },
   bcastBtn      : { backgroundColor: COLORS.primary, borderRadius: 12, paddingVertical: 11, paddingHorizontal: 22 },
   bcastBtnText  : { color: '#fff', fontWeight: '700', fontSize: 14 },
+
+  // Recommendations section
+  recSectionTitle: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 16 },
+  recSectionTitleText: { fontSize: 18, fontWeight: '800', color: '#0f172a', marginLeft: 4 },
+  recSection: { marginBottom: 20 },
+  recHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, marginBottom: 12 },
+  recTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  recTitleDot: { width: 4, height: 18, borderRadius: 4, backgroundColor: COLORS.primary },
+  recTitle: { fontSize: 15, fontWeight: '700', color: '#1e293b' },
+  recSeeAll: { fontSize: 13, fontWeight: '600', color: COLORS.primary, flexDirection: 'row', alignItems: 'center', gap: 2 },
+  recScroll: { paddingHorizontal: 14, gap: 14 },
+  recCard: { width: 160, backgroundColor: '#fff', borderRadius: 14, overflow: 'hidden', elevation: 3, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
+  recImgWrap: { position: 'relative' },
+  recImg: { width: '100%', aspectRatio: 4/3 },
+  recBadge: { position: 'absolute', top: 6, left: 6, backgroundColor: COLORS.primary, borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
+  recBadgeText: { color: '#fff', fontSize: 8, fontWeight: '800' },
+  recSoldBadge: { position: 'absolute', top: 6, left: 6, backgroundColor: '#dc2626', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  recSoldText: { color: '#fff', fontSize: 8, fontWeight: '900' },
+  recCardBody: { padding: 8 },
+  recCardName: { fontSize: 11, fontWeight: '600', color: '#1e293b', lineHeight: 15, marginBottom: 4 },
+  recCardPrice: { fontSize: 13, fontWeight: '800', color: COLORS.primary },
+
+  // Trends section
+  trendsSection: { marginTop: 8, marginBottom: 20 },
+  trendsGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 10, gap: 10 },
+  trendCard: { width: (SCREEN_WIDTH - 40) / 2, backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', elevation: 3, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
+  trendImg: { width: '100%', aspectRatio: 1 },
+  trendBadge: { position: 'absolute', top: 6, left: 6, backgroundColor: COLORS.primary, borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
+  trendBadgeText: { color: '#fff', fontSize: 8, fontWeight: '800' },
+  trendSoldBadge: { position: 'absolute', top: 6, left: 6, backgroundColor: '#dc2626', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  trendSoldText: { color: '#fff', fontSize: 8, fontWeight: '900' },
+  trendCardBody: { padding: 8 },
+  trendCardName: { fontSize: 12, fontWeight: '600', color: '#1e293b', lineHeight: 16, marginBottom: 4 },
+  trendCardPrice: { fontSize: 14, fontWeight: '800', color: COLORS.primary },
 });

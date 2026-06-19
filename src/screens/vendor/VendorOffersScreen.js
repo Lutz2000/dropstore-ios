@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import client, { BASE_URL } from '../../api/client';
 import { COLORS } from '../../constants/theme';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const STATUS_COLOR = {
   open:     '#3b82f6',
@@ -23,7 +24,7 @@ export default function VendorOffersScreen({ navigation }) {
       const res = await client.get('/offers');
       setThreads(res.data);
     } catch (e) {
-      if (e?.response?.status === 401) navigation.replace('Login');
+      
     } finally {
       setLoading(false);
     }

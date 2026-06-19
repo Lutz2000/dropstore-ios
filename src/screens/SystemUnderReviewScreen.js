@@ -1,5 +1,6 @@
 import React from 'react';
-import { Platform,
+import {
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
   View, Text, StyleSheet, Animated, Easing,
   StatusBar, Dimensions,
 } from 'react-native';
@@ -32,7 +33,7 @@ export default function SystemUnderReviewScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Platform.OS === 'android' ? '#0a1628' : undefined} />
+      <StatusBar barStyle="light-content" backgroundColor="#0a1628" />
 
       {/* Background gradient dots */}
       <View style={styles.bgOrb1} />

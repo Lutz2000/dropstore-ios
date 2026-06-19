@@ -31,7 +31,7 @@ export default function BuyerOffersScreen({ navigation }) {
       const res = await client.get('/offers');
       setThreads(res.data);
     } catch (e) {
-      if (e?.response?.status === 401) navigation.replace('Login');
+      
     } finally {
       setLoading(false);
     }

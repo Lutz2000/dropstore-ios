@@ -23,7 +23,7 @@ export default function CartScreen({ navigation }) {
       const res = await client.get('/cart');
       setItems(res.data.data || res.data);
     } catch (e) {
-      if (e?.response?.status === 401) navigation.replace('Login');
+      
     } finally { setLoading(false); }
   }, []);
 

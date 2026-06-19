@@ -15,27 +15,13 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.dropmartug.dropstore",
-      "buildNumber": "2",
-      "requireFullScreen": false,
+      "bundleIdentifier": "com.dromartug.dropstore",
+      "buildNumber": "3",
       "infoPlist": {
-        "NSCameraUsageDescription": "DropStore needs camera access to take product photos.",
-        "NSPhotoLibraryUsageDescription": "DropStore needs photo library access to upload product images.",
-        "NSPhotoLibraryAddUsageDescription": "DropStore needs access to save images to your library.",
-        "NSLocationWhenInUseUsageDescription": "DropStore uses your location to estimate delivery areas.",
-        "NSFaceIDUsageDescription": "Use Face ID to securely sign in to DropStore.",
-        "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": false
-        }
-      },
-      "entitlements": {
-        "com.apple.developer.associated-domains": [
-          "applinks:dropstore.click"
-        ]
-      },
-      "usesAppleSignIn": false,
-      "config": {
-        "usesNonExemptEncryption": false
+        "NSPhotoLibraryUsageDescription": "DropStore needs access to your photo library so you can upload product images and profile pictures.",
+        "NSCameraUsageDescription": "DropStore needs access to your camera so you can take photos for product images and your profile.",
+        "NSMicrophoneUsageDescription": "DropStore needs access to your microphone for video recordings.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -43,11 +29,10 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.dropstore",
+      "package": "com.dromartug.dropstore",
       "versionCode": 1,
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "edgeToEdgeEnabled": true,
+      "permissions": ["com.google.android.gms.permission.AD_ID"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -55,16 +40,17 @@
     "extra": {
       "apiUrl": "https://dropstore.click/public/api",
       "eas": {
-        "projectId": "c13a70eb-9848-424b-8d9d-4d6b02a3f878"
+        "projectId": "6baa36ef-4150-428e-b2d0-9299cc6336f8"
       }
     },
+    "owner": "lutaaya01",
     "plugins": [
       "expo-secure-store",
       [
         "expo-image-picker",
         {
-          "photosPermission": "DropStore needs access to your photos to upload product images.",
-          "cameraPermission": "DropStore needs camera access to take product photos."
+          "photosPermission": "DropStore needs access to your photo library so you can upload product images and profile pictures.",
+          "cameraPermission": "DropStore needs access to your camera so you can take photos."
         }
       ]
     ]

@@ -162,11 +162,11 @@ export default function VendorDashboardScreen({ navigation }) {
       const res = await client.get('/vendor/stats');
       setStats(res.data);
     } catch (e) {
-      if (e?.response?.status === 401) navigation.replace('Login');
+      
     } finally { setLoading(false); }
   };
 
-  const handleLogout = async () => { await logout(); navigation.replace('Landing'); };
+  const handleLogout = async () => { await logout(); };
 
   const sendFeedback = async () => {
     if (!fbMessage.trim()) return;
@@ -921,7 +921,7 @@ const styles = StyleSheet.create({
     fontSize: 14
   },
 
-
+const styles = StyleSheet.create({
   container   : { flex: 1, backgroundColor: '#f9f9f9' },
   header      : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   greeting    : { fontSize: 22, fontWeight: '800', color: '#1a1a1a' },

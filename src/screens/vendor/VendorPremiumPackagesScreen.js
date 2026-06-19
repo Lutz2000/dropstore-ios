@@ -6,6 +6,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import client from '../../api/client';
 import { COLORS, SIZES } from '../../constants/theme';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const PLAN_COLORS = {
   monthly:   '#3b82f6',

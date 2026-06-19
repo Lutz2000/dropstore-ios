@@ -58,7 +58,7 @@ export default function ProfileScreen({ navigation }) {
 
   const handleLogout = async () => {
     await logout();
-    navigation.replace('Landing');
+    
   };
 
   const closeFbModal = () => { setFbModal(false); setFbSuccess(false); setFbSubject(''); setFbMessage(''); setFbCategory('general'); };
@@ -86,7 +86,7 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity onPress={pickAvatar} style={styles.avatarCircle}>
               {(avatarUri || user?.profile_picture) ? (
                 <Image
-                  source={{ uri: avatarUri || (user.profile_picture.startsWith('http') ? user.profile_picture : `${client.defaults.baseURL.replace('/api', '')}/storage/${user.profile_picture}`) }}
+                  source={{ uri: avatarUri || (user.profile_picture?.startsWith('http') ? user.profile_picture : `${client.defaults.baseURL.replace('/api', '')}/storage/${user.profile_picture}`) }}
                   style={styles.avatarImg}
                 />
               ) : (

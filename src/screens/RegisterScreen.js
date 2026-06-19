@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView,
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useAuth } from '../context/AuthContext';
 import { COLORS } from '../constants/theme';
 
@@ -11,9 +12,10 @@ const COUNTRIES = ['Uganda','Kenya','Tanzania','Rwanda','Burundi','South Sudan',
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
   const [role, setRole]   = useState('buyer');
-  const [form, setForm]   = useState({
-    name: '', phone: '', email: '', gender: 'male',
-    age: '', country: 'Uganda', password: '', password_confirmation: '',
+    const [form, setForm]   = useState({
+    name: '', phone: '', email: '', referral_agent_name: '',
+    gender: 'male', age: '', country: 'Uganda',
+    password: '', password_confirmation: '',
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors]   = useState({});
@@ -66,29 +68,62 @@ export default function RegisterScreen({ navigation }) {
           ))}
         </View>
 
-        {[
-          ['name',  'Full Name',     'default', false],
-          ['phone', 'Phone Number',  'phone-pad', false],
-          ['email', 'Email',         'email-address', false],
-          ['age',   'Age',           'numeric', false],
-          ['password',              'Password',         'default', true],
-          ['password_confirmation', 'Confirm Password', 'default', true],
-        ].map(([key, label, type, secure]) => (
-          <View key={key}>
-            <Text style={styles.label}>{label}</Text>
-            <TextInput
-              style={styles.input}
-              value={form[key]}
-              onChangeText={v => set(key, v)}
-              placeholder={label}
-              keyboardType={type}
-              secureTextEntry={secure}
-              autoCapitalize="none"
-              placeholderTextColor="#aaa"
-            />
-            {err(key)}
+                {/* Name + Phone */}
+        <View style={styles.row2}>
+          <View style={styles.halfField}>
+            <Text style={styles.label}>Full Name *</Text>
+            <TextInput style={styles.input} value={form.name} onChangeText={v => set('name', v)}
+              placeholder="John Doe" keyboardType="default" autoCapitalize="words" placeholderTextColor="#aaa" />
+            {err('name')}
           </View>
-        ))}
+          <View style={styles.halfField}>
+            <Text style={styles.label}>Phone *</Text>
+            <TextInput style={styles.input} value={form.phone} onChangeText={v => set('phone', v)}
+              placeholder="+256 700 000000" keyboardType="phone-pad" autoCapitalize="none" placeholderTextColor="#aaa" />
+            {err('phone')}
+          </View>
+        </View>
+
+        {/* Email */}
+        <Text style={styles.label}>Email Address *</Text>
+        <View style={styles.iconInputWrap}>
+          <MaterialCommunityIcons name="email-outline" size={16} color="#aaa" style={styles.inputIcon} />
+          <TextInput style={[styles.input, styles.inputWithIcon]} value={form.email} onChangeText={v => set('email', v)}
+            placeholder="john@example.com" keyboardType="email-address" autoCapitalize="none" placeholderTextColor="#aaa" />
+        </View>
+        {err('email')}
+
+        {/* Referral Agent — free text, optional */}
+        <Text style={styles.label}>Referral Agent Name <Text style={styles.labelOptional}>(Optional)</Text></Text>
+        <View style={styles.iconInputWrap}>
+          <MaterialCommunityIcons name="account-tie-outline" size={16} color="#aaa" style={styles.inputIcon} />
+          <TextInput
+            style={[styles.input, styles.inputWithIcon]}
+            value={form.referral_agent_name}
+            onChangeText={v => set('referral_agent_name', v)}
+            placeholder="Sales agent name (if referred)"
+            keyboardType="default"
+            autoCapitalize="words"
+            placeholderTextColor="#aaa"
+          />
+        </View>
+        <Text style={styles.fieldHint}>Leave blank if you're registering on your own</Text>
+        {err('referral_agent_name')}
+
+        {/* Password + Confirm */}
+        <View style={styles.row2}>
+          <View style={styles.halfField}>
+            <Text style={styles.label}>Password *</Text>
+            <TextInput style={styles.input} value={form.password} onChangeText={v => set('password', v)}
+              placeholder="Min 8 chars" secureTextEntry autoCapitalize="none" placeholderTextColor="#aaa" />
+            {err('password')}
+          </View>
+          <View style={styles.halfField}>
+            <Text style={styles.label}>Confirm *</Text>
+            <TextInput style={styles.input} value={form.password_confirmation} onChangeText={v => set('password_confirmation', v)}
+              placeholder="Repeat password" secureTextEntry autoCapitalize="none" placeholderTextColor="#aaa" />
+          </View>
+        </View>
 
         {/* Gender */}
         <Text style={styles.label}>Gender</Text>
@@ -144,6 +179,16 @@ const styles = StyleSheet.create({
   pillTextActive: { color: '#fff', fontWeight: '600' },
   btn          : { backgroundColor: '#FFA100', borderRadius: 12, paddingVertical: 15, alignItems: 'center', marginTop: 28 },
   btnText      : { color: '#fff', fontSize: 16, fontWeight: '700' },
-  link         : { textAlign: 'center', color: '#888', marginTop: 20, fontSize: 14 },
-  linkAccent   : { color: '#FFA100', fontWeight: '600' },
+    link          : { textAlign: 'center', color: '#888', marginTop: 20, fontSize: 14 },
+  linkAccent    : { color: '#FFA100', fontWeight: '600' },
+  // Two-column row
+  row2          : { flexDirection: 'row', gap: 10, marginBottom: 0 },
+  halfField     : { flex: 1 },
+  // Icon input wrapper
+  iconInputWrap : { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 10, backgroundColor: '#f5f5f5', marginBottom: 2 },
+  inputIcon     : { marginLeft: 12, marginRight: 4 },
+  inputWithIcon : { flex: 1, borderWidth: 0, backgroundColor: 'transparent', borderRadius: 10 },
+  // Optional label hint + field hint
+  labelOptional : { fontWeight: '400', color: '#aaa', fontSize: 12 },
+  fieldHint     : { fontSize: 11, color: '#9ca3af', marginTop: 3, marginBottom: 8 },
 });
