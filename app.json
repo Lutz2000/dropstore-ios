@@ -15,8 +15,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.dromartug.dropstore",
-      "buildNumber": "3",
+      "bundleIdentifier": "com.dropmartug.dropstore",
+      "buildNumber": "8",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "DropStore needs access to your photo library so you can upload product images and profile pictures.",
         "NSCameraUsageDescription": "DropStore needs access to your camera so you can take photos for product images and your profile.",
@@ -29,7 +29,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.dromartug.dropstore",
+      "package": "com.dropmartug.dropstore",
       "versionCode": 1,
       "edgeToEdgeEnabled": true,
       "permissions": ["com.google.android.gms.permission.AD_ID"]
