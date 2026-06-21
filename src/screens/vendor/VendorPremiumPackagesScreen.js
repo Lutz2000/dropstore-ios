@@ -3,7 +3,6 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal,
   ActivityIndicator, Alert, TextInput, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import client from '../../api/client';
 import { COLORS, SIZES } from '../../constants/theme';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';

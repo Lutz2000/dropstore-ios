@@ -68,7 +68,6 @@ export default function VendorDashboardScreen({ navigation }) {
         const diffMinutes = (now - createdTime) / (1000 * 60);
         if (diffMinutes < 60) {
           const storageKey = `vd_seen_${user.id}`;
-          const AsyncStorage = require('@react-native-async-storage/async-storage').default;
           const hasSeen = await AsyncStorage.getItem(storageKey);
           if (!hasSeen) {
             setIsNewVendor(true);
@@ -151,7 +150,6 @@ export default function VendorDashboardScreen({ navigation }) {
   const closeDisclaimer = async () => {
     try {
       const storageKey = `vd_seen_${user.id}`;
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
       await AsyncStorage.setItem(storageKey, 'true');
     } catch (_) {}
     setShowDisclaimer(false);
