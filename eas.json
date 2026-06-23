@@ -9,12 +9,16 @@
       "distribution": "internal",
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+      },
+      "ios": {
+        "image": "latest"
       }
     },
     "preview": {
       "distribution": "internal",
       "ios": {
-        "simulator": false
+        "simulator": false,
+        "image": "latest"
       },
       "android": {
         "buildType": "apk"
@@ -26,7 +30,8 @@
     "production": {
       "autoIncrement": true,
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "image": "latest"
       },
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
