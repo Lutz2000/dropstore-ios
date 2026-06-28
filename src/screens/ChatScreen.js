@@ -80,7 +80,7 @@ export default function ChatScreen({ route, navigation }) {
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaType.images,
       quality: 0.8,
     });
     if (!result.canceled && result.assets?.[0]) {

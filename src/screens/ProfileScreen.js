@@ -38,7 +38,7 @@ export default function ProfileScreen({ navigation }) {
   const pickAvatar = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') { Alert.alert('Permission required', 'Please allow access to your photo library.'); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.85 });
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaType.images, allowsEditing: true, aspect: [1, 1], quality: 0.85 });
     if (!result.canceled && result.assets?.length > 0) setAvatarUri(result.assets[0].uri);
   };
 

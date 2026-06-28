@@ -84,7 +84,7 @@ async function pickImage(setter) {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) { Alert.alert('Permission required', 'Allow access to photos.'); return; }
   const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    mediaTypes: ImagePicker.MediaType.images,
     quality: 0.8,
   });
   if (!result.canceled && result.assets?.length) {
