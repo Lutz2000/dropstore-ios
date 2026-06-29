@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  ActivityIndicator, RefreshControl, Image, TextInput,
+  ActivityIndicator, RefreshControl, Image, TextInput, Alert,
 } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import client, { BASE_URL } from '../api/client';
@@ -181,7 +181,7 @@ export default function ChatListScreen({ navigation }) {
       const res = await client.post('/chat/threads', { vendor_id: vendorId });
       navigation.navigate('Chat', { threadId: res.data.id, otherName: vendorName });
     } catch (e) {
-      alert(e?.response?.data?.message || 'Could not open chat.');
+      Alert.alert('Error', e?.response?.data?.message || 'Could not open chat.');
     }
   };
 
@@ -190,7 +190,7 @@ export default function ChatListScreen({ navigation }) {
       const res = await client.post('/chat/threads', { buyer_id: buyerId });
       navigation.navigate('Chat', { threadId: res.data.id, otherName: buyerName });
     } catch (e) {
-      alert(e?.response?.data?.message || 'Could not open chat.');
+      Alert.alert('Error', e?.response?.data?.message || 'Could not open chat.');
     }
   };
 

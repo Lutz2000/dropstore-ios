@@ -1,4 +1,4 @@
-﻿﻿import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Image, Modal,
@@ -10,7 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import client from '../../api/client';
 import { COLORS } from '../../constants/theme';
 
-// â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Constants ───────────────────────────────────────────────────────────────
 
 const SUBSCRIPTION_PLANS = [
   {
@@ -49,7 +49,7 @@ function normalizePhone(phone) {
   return p;
 }
 
-// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function SectionTitle({ children }) {
   return <Text style={styles.sectionTitle}>{children}</Text>;
@@ -78,7 +78,7 @@ function TextBox({ value, onChange, placeholder, keyboardType = 'default', multi
   );
 }
 
-// â”€â”€â”€ Image picker helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Image picker helper ──────────────────────────────────────────────────────
 
 async function pickImage(setter) {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -99,7 +99,7 @@ function ImageUploadBox({ label, asset, onPick, required }) {
       <TouchableOpacity style={styles.uploadBtn} onPress={onPick}>
         {asset
           ? <Image source={{ uri: asset.uri }} style={styles.uploadPreview} resizeMode="cover" />
-          : <Text style={styles.uploadBtnText}>ðŸ“Ž Tap to upload</Text>
+          : <Text style={styles.uploadBtnText}>📷 Tap to upload</Text>
         }
       </TouchableOpacity>
     </View>
@@ -442,7 +442,7 @@ function PaymentFlowModal({ visible, method, plan, phoneNumber, bankDetails, onC
     </Modal>
   );
 }
-// â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function VendorApplyScreen({ navigation }) {
   const [step, setStep]               = useState(0); // 0=type, 1=details, 2=subscription, 3=payment
@@ -508,7 +508,7 @@ export default function VendorApplyScreen({ navigation }) {
     );
   };
 
-  // â”€â”€ Validation per step â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Validation per step ────────────────────────────────────────────────────
   const validateStep1 = () => {
     if (!idFront) { Alert.alert('Required', 'Please upload your ID (front).'); return false; }
     if (!idBack)  { Alert.alert('Required', 'Please upload your ID (back).'); return false; }
@@ -541,7 +541,7 @@ export default function VendorApplyScreen({ navigation }) {
     setStep(s => s + 1);
   };
 
-  // â”€â”€ Submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Submit ─────────────────────────────────────────────────────────────────
   const submit = async (extraPaymentFields = {}) => {
     setShowPayModal(false);
     setLoading(true);
@@ -586,7 +586,7 @@ export default function VendorApplyScreen({ navigation }) {
       AsyncStorage.removeItem(PENDING_PAYMENT_KEY).catch(() => {});
 
       Alert.alert(
-        'ðŸŽ‰ Application Submitted',
+        '🎉 Application Submitted',
         'Your application is under review. The admin team will verify your details within 24-48 hours.',
         [{ text: 'OK', onPress: () => navigation.goBack() }],
       );
@@ -597,7 +597,7 @@ export default function VendorApplyScreen({ navigation }) {
     }
   };
 
-  // â”€â”€ Step 0: Vendor Type Selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Step 0: Vendor Type Selection ──────────────────────────────────────────
   const renderStep0 = () => (
     <View>
       <Text style={styles.title}>Join as a Vendor</Text>
@@ -607,28 +607,28 @@ export default function VendorApplyScreen({ navigation }) {
         style={[styles.typeCard, vendorType === 'commercial' && styles.typeCardActive]}
         onPress={() => setVendorType('commercial')}
       >
-        <Text style={styles.typeIcon}>ðŸª</Text>
+        <Text style={styles.typeIcon}>🏪</Text>
         <View style={{ flex: 1 }}>
           <Text style={styles.typeName}>Commercial Vendor</Text>
           <Text style={styles.typeDesc}>
             For registered businesses. Requires business name, location, registration certificate, and business licence.
           </Text>
         </View>
-        {vendorType === 'commercial' && <Text style={styles.typeCheck}>âœ“</Text>}
+        {vendorType === 'commercial' && <Text style={styles.typeCheck}>✓</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.typeCard, vendorType === 'individual' && styles.typeCardActive]}
         onPress={() => setVendorType('individual')}
       >
-        <Text style={styles.typeIcon}>ðŸ‘¤</Text>
+        <Text style={styles.typeIcon}>👤</Text>
         <View style={{ flex: 1 }}>
           <Text style={styles.typeName}>Individual Vendor</Text>
           <Text style={styles.typeDesc}>
             For individuals selling personal items. Requires your ID, phone number, address, and a receipt/invoice.
           </Text>
         </View>
-        {vendorType === 'individual' && <Text style={styles.typeCheck}>âœ“</Text>}
+        {vendorType === 'individual' && <Text style={styles.typeCheck}>✓</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -636,15 +636,15 @@ export default function VendorApplyScreen({ navigation }) {
         onPress={() => vendorType && setStep(1)}
         disabled={!vendorType}
       >
-        <Text style={styles.navBtnText}>Continue â†’</Text>
+        <Text style={styles.navBtnText}>Continue →</Text>
       </TouchableOpacity>
     </View>
   );
 
-  // â”€â”€ Step 1: Details form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Step 1: Details form ───────────────────────────────────────────────────
   const renderStep1 = () => (
     <View>
-      <Text style={styles.title}>{vendorType === 'commercial' ? 'ðŸª Business Details' : 'ðŸ‘¤ Personal Details'}</Text>
+      <Text style={styles.title}>{vendorType === 'commercial' ? '🏪 Business Details' : '👤 Personal Details'}</Text>
       <Text style={styles.sub}>Fill in the required information for your vendor account.</Text>
 
       {vendorType === 'commercial' ? (
@@ -673,8 +673,8 @@ export default function VendorApplyScreen({ navigation }) {
       )}
 
       <SectionTitle>Identity Documents</SectionTitle>
-      <ImageUploadBox label="National ID â€” Front" required asset={idFront} onPick={() => pickImage(setIdFront)} />
-      <ImageUploadBox label="National ID â€” Back" required asset={idBack} onPick={() => pickImage(setIdBack)} />
+      <ImageUploadBox label="National ID - Front" required asset={idFront} onPick={() => pickImage(setIdFront)} />
+      <ImageUploadBox label="National ID - Back" required asset={idBack} onPick={() => pickImage(setIdBack)} />
 
       <SectionTitle>Product Categories</SectionTitle>
       <Text style={styles.catHint}>Choose categories you will sell in (select all that apply).</Text>
@@ -697,19 +697,19 @@ export default function VendorApplyScreen({ navigation }) {
 
       <View style={styles.stepNav}>
         <TouchableOpacity style={styles.backBtn} onPress={() => setStep(0)}>
-          <Text style={styles.backBtnText}>â† Back</Text>
+          <Text style={styles.backBtnText}>← Back</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navBtn} onPress={next}>
-          <Text style={styles.navBtnText}>Next â†’</Text>
+          <Text style={styles.navBtnText}>Next →</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
-  // â”€â”€ Step 2: Subscription selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Step 2: Subscription selection ────────────────────────────────────────
   const renderStep2 = () => (
     <View>
-      <Text style={styles.title}>ðŸ’³ Choose a Plan</Text>
+      <Text style={styles.title}>💳 Choose a Plan</Text>
       <Text style={styles.sub}>Select the subscription that suits your selling needs.</Text>
 
       {SUBSCRIPTION_PLANS.map(plan => {
@@ -730,7 +730,7 @@ export default function VendorApplyScreen({ navigation }) {
                 <Text style={styles.planPrice}>UGX {plan.price.toLocaleString()}</Text>
                 {active && (
                   <View style={[styles.selectedPill, { backgroundColor: color }]}>
-                    <Text style={styles.selectedPillText}>Selected âœ“</Text>
+                    <Text style={styles.selectedPillText}>Selected ✓</Text>
                   </View>
                 )}
               </View>
@@ -738,7 +738,7 @@ export default function VendorApplyScreen({ navigation }) {
             <View style={{ gap: 4, marginTop: 8 }}>
               {plan.features.map((f, i) => (
                 <View key={i} style={styles.featureRow}>
-                  <Text style={[styles.featureIcon, { color }]}>âœ“</Text>
+                  <Text style={[styles.featureIcon, { color }]}>✓</Text>
                   <Text style={styles.featureText}>{f}</Text>
                 </View>
               ))}
@@ -749,16 +749,16 @@ export default function VendorApplyScreen({ navigation }) {
 
       <View style={styles.stepNav}>
         <TouchableOpacity style={styles.backBtn} onPress={() => setStep(1)}>
-          <Text style={styles.backBtnText}>â† Back</Text>
+          <Text style={styles.backBtnText}>← Back</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.navBtn, !selectedPlan && { opacity: 0.4 }]} onPress={next} disabled={!selectedPlan}>
-          <Text style={styles.navBtnText}>Next â†’</Text>
+          <Text style={styles.navBtnText}>Next →</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
-  // â”€â”€ Step 3: Payment method â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Step 3: Payment method ─────────────────────────────────────────────────
   const renderStep3 = () => {
     const plan = SUBSCRIPTION_PLANS.find(p => p.key === selectedPlan);
     const selectedMethod = paymentMethods.find(m => m.key === paymentMethod);
@@ -821,7 +821,7 @@ export default function VendorApplyScreen({ navigation }) {
     );
   };
 
-  // â”€â”€ Step indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Step indicator ─────────────────────────────────────────────────────────
   const STEPS = ['Type', 'Details', 'Plan', 'Payment'];
   const renderSteps = () => (
     <View style={styles.stepIndicator}>
@@ -836,7 +836,7 @@ export default function VendorApplyScreen({ navigation }) {
     </View>
   );
 
-  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={styles.container} contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
@@ -850,7 +850,7 @@ export default function VendorApplyScreen({ navigation }) {
   );
 }
 
-// â”€â”€â”€ Styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container  : { flex: 1, backgroundColor: '#fff' },
   inner      : { padding: 20, paddingBottom: 50 },

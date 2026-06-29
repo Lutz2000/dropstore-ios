@@ -227,21 +227,22 @@ export default function VendorDashboardScreen({ navigation }) {
               <Text style={styles.subCardRight}>{daysLeft} {daysLeft === 1 ? 'day' : 'days'} left</Text>
             </View>
           </View>
-          <Text style={styles.subCardDetail}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <View style={styles.subCardDetail}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
               {isVerified ? (
-                <>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                   <MaterialCommunityIcons name="check-circle" size={14} color={COLORS.primary} />
-                  <Text>Verified Vendor</Text>
-                </>
+                  <Text style={{ color: '#555', fontSize: 12 }}>Verified Vendor</Text>
+                </View>
               ) : (
-                <>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                   <MaterialCommunityIcons name="clock-outline" size={14} color="#f59e0b" />
-                  <Text>Pending admin approval</Text>
-                </>
+                  <Text style={{ color: '#555', fontSize: 12 }}>Pending admin approval</Text>
+                </View>
               )}
-            </View> • {stats.images_per_product} images/product  •  Promo banners active
-          </Text>
+              <Text style={{ color: '#555', fontSize: 12 }}> • {stats.images_per_product} images/product • Promo banners active</Text>
+            </View>
+          </View>
         </TouchableOpacity>
       ) : hasSub && daysLeft <= 0 ? (
         <View style={styles.expiredCard}>
@@ -745,7 +746,6 @@ export default function VendorDashboardScreen({ navigation }) {
     </ScrollView>
   );
 }
-
 const styles = StyleSheet.create({
   container   : { flex: 1, backgroundColor: '#f9f9f9' },
   header      : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
@@ -919,19 +919,12 @@ const styles = StyleSheet.create({
     fontSize: 14
   },
 
-const styles = StyleSheet.create({
-  container   : { flex: 1, backgroundColor: '#f9f9f9' },
-  header      : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  greeting    : { fontSize: 22, fontWeight: '800', color: '#1a1a1a' },
-  sub         : { fontSize: 13, color: '#888', marginTop: 2 },
-  logoutLink  : { color: '#ef4444', fontWeight: '600' },
-
   subCard       : { backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 16, elevation: 2, borderLeftWidth: 4 },
   subCardRow    : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   subBadge      : { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
   subBadgeText  : { color: '#fff', fontSize: 11, fontWeight: '800' },
   subCardRight  : { fontSize: 13, color: '#888', fontWeight: '600' },
-  subCardDetail : { fontSize: 12, color: '#555' },
+  subCardDetail : { marginTop: 4 },
 
   upgradeCard  : { backgroundColor: '#fff8f0', borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: '#ffe8c0' },
   upgradeTitle : { fontSize: 15, fontWeight: '800', color: '#1a1a1a', marginBottom: 4 },

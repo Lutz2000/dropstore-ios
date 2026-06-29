@@ -133,7 +133,7 @@ export default function ProfileScreen({ navigation }) {
         </TouchableOpacity>
 
         {/* My Offers shortcut */}
-        <TouchableOpacity style={styles.fbBtn} onPress={() => navigation.navigate('MyOffers')}>
+        <TouchableOpacity style={styles.fbBtn} onPress={() => navigation.navigate(user?.role === 'vendor' ? 'VendorOffers' : 'MyOffers')}>
           <MaterialCommunityIcons name="tag-multiple-outline" size={16} color="#fff" />
           <Text style={styles.fbBtnText}>My Price Offers</Text>
         </TouchableOpacity>
