@@ -26,10 +26,7 @@ function VendorCard({ item, onPress }) {
           <Text style={styles.contactName} numberOfLines={1}>
             {item.business_name || item.name}
           </Text>
-          {item.is_verified && (
-            {verified && <MaterialCommunityIcons name="check-circle" size={12} color={COLORS.primary} />}
-            {verified && <Text style={styles.verifiedBadge}>Verified</Text>
-          )}
+          {item.is_verified && <Text style={styles.verifiedBadge}>Verified</Text>}
         </View>
         <Text style={styles.contactSub} numberOfLines={1}>
           {item.categories?.join(' · ') || 'General'}
