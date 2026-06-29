@@ -221,7 +221,7 @@ export default function VendorDashboardScreen({ navigation }) {
         >
           <View style={styles.subCardRow}>
             <View style={[styles.subBadge, { backgroundColor: planColor }]}>
-              <Text style={styles.subBadgeText}>{stats.subscription_plan.toUpperCase()}</Text>
+              <Text style={styles.subBadgeText}>{(stats.subscription_plan || '').toUpperCase()}</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <MaterialCommunityIcons name="clock-outline" size={16} color={COLORS.primary} />
@@ -248,7 +248,7 @@ export default function VendorDashboardScreen({ navigation }) {
         <View style={styles.expiredCard}>
           <View style={styles.expiredCardTop}>
             <View style={styles.expiredBadge}>
-              <Text style={styles.expiredBadgeText}>{stats.subscription_plan.toUpperCase()} — EXPIRED</Text>
+              <Text style={styles.expiredBadgeText}>{((stats.subscription_plan || '') + '').toUpperCase()} — EXPIRED</Text>
             </View>
             <Text style={styles.expiredDays}>0 days left</Text>
           </View>

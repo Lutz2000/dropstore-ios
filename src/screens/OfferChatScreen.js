@@ -153,7 +153,7 @@ export default function OfferChatScreen({ route, navigation }) {
             </Text>
           </Text>
           <View style={[styles.statusBadge, { backgroundColor: statusColor(thread.status) }]}>
-            <Text style={styles.statusText}>{thread.status.toUpperCase()}</Text>
+            <Text style={styles.statusText}>{(thread.status || '').toUpperCase()}</Text>
           </View>
         </View>
       </View>
