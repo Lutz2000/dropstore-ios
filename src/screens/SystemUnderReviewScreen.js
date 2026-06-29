@@ -1,6 +1,6 @@
 import React from 'react';
-import {
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import {
   View, Text, StyleSheet, Animated, Easing,
   StatusBar, Dimensions,
 } from 'react-native';
