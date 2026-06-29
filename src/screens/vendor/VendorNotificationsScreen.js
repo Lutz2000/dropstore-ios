@@ -17,7 +17,6 @@ export default function VendorNotificationsScreen({ navigation }) {
       const res = await client.get('/vendor/notifications');
       setNotifications(res.data.data || res.data);
     } catch (e) {
-      
     } finally { setLoading(false); }
   }, []);
 

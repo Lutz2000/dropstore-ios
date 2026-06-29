@@ -7,7 +7,7 @@ import { COLORS, SIZES, FONTS } from '../constants/theme';
 export default function LandingScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.black} />
       <View style={styles.hero}>
         <Image source={require('../../logo/logo crisp.png')} style={styles.logo} resizeMode="contain" />
         <Text style={styles.tagline}>Shop from verified vendors.{'\n'}Delivered to your door.</Text>

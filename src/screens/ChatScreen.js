@@ -149,7 +149,7 @@ export default function ChatScreen({ route, navigation }) {
             {/* Image message */}
             {item.image_path && (
               <Image
-                source={{ uri: item.image_path.startsWith('images/') ? `${BASE_URL}/${item.image_path}` : `${BASE_URL}/storage/${item.image_path}` }}
+                source={{ uri: item.image_path?.startsWith('images/') ? `${BASE_URL}/${item.image_path}` : `${BASE_URL}/storage/${item.image_path}` }}
                 style={styles.msgImage}
                 resizeMode="cover"
               />

@@ -4,8 +4,8 @@ import {
   ActivityIndicator, Alert, RefreshControl,
 } from 'react-native';
 import client, { BASE_URL } from '../api/client';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { COLORS } from '../constants/theme';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 export default function WishlistScreen({ navigation }) {
   const [items, setItems]     = useState([]);
@@ -17,7 +17,6 @@ export default function WishlistScreen({ navigation }) {
       const res = await client.get('/wishlist');
       setItems(res.data.data || res.data);
     } catch (e) {
-      
     } finally { setLoading(false); }
   }, []);
 

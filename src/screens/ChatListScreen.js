@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  ActivityIndicator, RefreshControl, Image, TextInput, Alert,
+  ActivityIndicator, RefreshControl, Image, TextInput,
 } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import client, { BASE_URL } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { COLORS, SIZES } from '../constants/theme';
 
-// ─── Vendor contact card ─────────────────────────────────────────────────────
+// ─── Vendor contact card (for buyer's vendor list) ────────────────────────────
 function VendorCard({ item, onPress }) {
   const logo = item.business_logo
     ? `${BASE_URL}/storage/${item.business_logo}`
@@ -27,10 +27,8 @@ function VendorCard({ item, onPress }) {
             {item.business_name || item.name}
           </Text>
           {item.is_verified && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <MaterialCommunityIcons name="check-circle" size={12} color={COLORS.primary} />
-              <Text style={styles.verifiedBadge}>Verified</Text>
-            </View>
+            {verified && <MaterialCommunityIcons name="check-circle" size={12} color={COLORS.primary} />}
+            {verified && <Text style={styles.verifiedBadge}>Verified</Text>
           )}
         </View>
         <Text style={styles.contactSub} numberOfLines={1}>
@@ -43,7 +41,7 @@ function VendorCard({ item, onPress }) {
   );
 }
 
-// ─── Buyer contact card ───────────────────────────────────────────────────────
+// ─── Buyer contact card (for vendor's buyer list) ─────────────────────────────
 function BuyerCard({ item, onPress }) {
   return (
     <TouchableOpacity style={styles.contactCard} onPress={onPress}>
@@ -52,13 +50,13 @@ function BuyerCard({ item, onPress }) {
       </View>
       <View style={styles.contactBody}>
         <Text style={styles.contactName} numberOfLines={1}>{item.name}</Text>
-        {!!item.phone && (
+        {!!item.phone    && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 }}>
             <MaterialCommunityIcons name="phone-outline" size={12} color={COLORS.primary} />
             <Text style={styles.contactSub}>{item.phone}</Text>
           </View>
         )}
-        {!!item.country && (
+        {!!item.country  && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
             <MaterialCommunityIcons name="earth" size={12} color={COLORS.primary} />
             <Text style={styles.contactSub}>{item.country}</Text>
@@ -80,7 +78,7 @@ function BuyerCard({ item, onPress }) {
 function ThreadRow({ item, role, onPress }) {
   const other  = item.other_user || {};
   const unread = item.unread || 0;
-  const latest = item.last_message?.body || (item.last_message?.image_path ? '🖼️ Image' : '');
+  const latest = item.last_message?.body || (item.last_message?.image_path ? '�️ Image' : '');
   const time   = item.last_message_at
     ? new Date(item.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : '';
@@ -123,12 +121,12 @@ function ThreadRow({ item, role, onPress }) {
   );
 }
 
-// ─── Main screen ──────────────────────────────────────────────────────────────
+// ─── Main screen ─────────────────────────────────────────────────────────────
 export default function ChatListScreen({ navigation }) {
   const { user } = useAuth();
   const isVendor = user?.role === 'vendor';
 
-  const [tab, setTab]           = useState('chats');
+  const [tab, setTab]           = useState('chats');   // 'chats' | 'contacts'
   const [threads, setThreads]   = useState([]);
   const [contacts, setContacts] = useState([]);
   const [loadingThreads,  setLoadingThreads]  = useState(true);
@@ -136,6 +134,7 @@ export default function ChatListScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch]     = useState('');
 
+  // Contacts tab: vendor sees buyers only if verified
   const canSeeContacts = !isVendor || user?.is_verified;
 
   const loadThreads = useCallback(async () => {
@@ -176,12 +175,13 @@ export default function ChatListScreen({ navigation }) {
     setRefreshing(false);
   };
 
+  // Navigate to chat — always start/get thread first
   const openVendorChat = async (vendorId, vendorName) => {
     try {
       const res = await client.post('/chat/threads', { vendor_id: vendorId });
       navigation.navigate('Chat', { threadId: res.data.id, otherName: vendorName });
     } catch (e) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not open chat.');
+      alert(e?.response?.data?.message || 'Could not open chat.');
     }
   };
 
@@ -190,10 +190,11 @@ export default function ChatListScreen({ navigation }) {
       const res = await client.post('/chat/threads', { buyer_id: buyerId });
       navigation.navigate('Chat', { threadId: res.data.id, otherName: buyerName });
     } catch (e) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not open chat.');
+      alert(e?.response?.data?.message || 'Could not open chat.');
     }
   };
 
+  // Filter helpers
   const filteredThreads = threads.filter(t => {
     const name = isVendor
       ? (t.other_user?.name || '')
@@ -210,6 +211,7 @@ export default function ChatListScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+
       {/* Tab bar */}
       <View style={styles.tabs}>
         <TouchableOpacity
@@ -310,13 +312,19 @@ export default function ChatListScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container    : { flex: 1, backgroundColor: '#fff' },
+
+  // Tabs
   tabs         : { flexDirection: 'row', borderBottomWidth: 1, borderColor: COLORS.border },
   tab          : { flex: 1, paddingVertical: 14, alignItems: 'center' },
   tabActive    : { borderBottomWidth: 3, borderColor: COLORS.primary },
   tabText      : { fontSize: SIZES.sm, color: '#888', fontWeight: '600' },
   tabTextActive: { color: COLORS.primary },
+
+  // Search
   searchWrap   : { paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#f9f9f9', borderBottomWidth: 1, borderColor: COLORS.border },
   searchInput  : { backgroundColor: '#fff', borderWidth: 1, borderColor: COLORS.border, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, fontSize: SIZES.md, color: '#111' },
+
+  // Contact / vendor card
   contactCard  : { flexDirection: 'row', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderColor: '#f0f0f0' },
   avatar       : { width: 48, height: 48, borderRadius: 24, backgroundColor: '#eee' },
   avatarPlaceholder: { justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.primary },
@@ -325,15 +333,22 @@ const styles = StyleSheet.create({
   contactTop   : { flexDirection: 'row', alignItems: 'center', gap: 6 },
   contactName  : { fontSize: SIZES.md, fontWeight: '600', color: '#111', flex: 1 },
   contactSub   : { fontSize: SIZES.xs, color: '#777', marginTop: 2 },
-  verifiedBadge: { fontSize: 10, color: '#16a34a', fontWeight: '700' },
+  verifiedBadge: { fontSize: 10, color: '#16a34a', fontWeight: '700', backgroundColor: '#dcfce7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
   chatArrow    : { fontSize: 22, color: '#ccc' },
+
+  // Thread row
   threadRow    : { flexDirection: 'row', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderColor: '#f0f0f0' },
   threadUnread : { backgroundColor: '#fff8ee' },
   timeText     : { fontSize: SIZES.xs, color: '#aaa', flexShrink: 0 },
   bold         : { fontWeight: '700', color: '#111' },
+
+  // Unread badge
   unreadBadge  : { backgroundColor: COLORS.primary, borderRadius: 12, minWidth: 22, height: 22, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 5, marginLeft: 8 },
   unreadText   : { color: '#fff', fontSize: 10, fontWeight: '800' },
+
+  // Empty
   empty        : { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, paddingHorizontal: 32 },
-  emptyTitle   : { fontSize: SIZES.lg, fontWeight: '700', color: '#111', marginBottom: 8, marginTop: 12 },
+  emptyIcon    : { fontSize: 48, marginBottom: 16 },
+  emptyTitle   : { fontSize: SIZES.lg, fontWeight: '700', color: '#111', marginBottom: 8 },
   emptySub     : { fontSize: SIZES.md, color: '#888', textAlign: 'center', lineHeight: 22 },
 });

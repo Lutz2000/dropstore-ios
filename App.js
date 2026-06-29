@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from './src/api/client';
+import ErrorBoundary from './src/components/ErrorBoundary';
 
 const AGENT_API  = API_URL.replace(/\/api$/, '') + '/api/agent-chat';
 const SESSION_KEY = 'dsa_session_token';
@@ -156,6 +157,7 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <ErrorBoundary>
       <StatusBar style="auto" />
       <AuthProvider>
         <View style={{ flex: 1 }}>
@@ -238,6 +240,7 @@ export default function App() {
           </TouchableOpacity>
         </View>
       </AuthProvider>
+          </ErrorBoundary>
     </GestureHandlerRootView>
   );
 }

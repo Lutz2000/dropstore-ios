@@ -31,7 +31,6 @@ export default function BuyerOffersScreen({ navigation }) {
       const res = await client.get('/offers');
       setThreads(res.data);
     } catch (e) {
-      
     } finally {
       setLoading(false);
     }

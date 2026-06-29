@@ -58,7 +58,6 @@ export default function ProfileScreen({ navigation }) {
 
   const handleLogout = async () => {
     await logout();
-    
   };
 
   const closeFbModal = () => { setFbModal(false); setFbSuccess(false); setFbSubject(''); setFbMessage(''); setFbCategory('general'); };
@@ -86,7 +85,7 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity onPress={pickAvatar} style={styles.avatarCircle}>
               {(avatarUri || user?.profile_picture) ? (
                 <Image
-                  source={{ uri: avatarUri || (user.profile_picture?.startsWith('http') ? user.profile_picture : `${client.defaults.baseURL.replace('/api', '')}/storage/${user.profile_picture}`) }}
+                  source={{ uri: avatarUri || (user?.profile_picture?.startsWith('http') ? user.profile_picture : `${client.defaults.baseURL.replace('/api', '')}/storage/${user.profile_picture}`) }}
                   style={styles.avatarImg}
                 />
               ) : (
@@ -133,7 +132,7 @@ export default function ProfileScreen({ navigation }) {
         </TouchableOpacity>
 
         {/* My Offers shortcut */}
-        <TouchableOpacity style={styles.fbBtn} onPress={() => navigation.navigate(user?.role === 'vendor' ? 'VendorOffers' : 'MyOffers')}>
+        <TouchableOpacity style={styles.fbBtn} onPress={() => navigation.navigate('MyOffers')}>
           <MaterialCommunityIcons name="tag-multiple-outline" size={16} color="#fff" />
           <Text style={styles.fbBtnText}>My Price Offers</Text>
         </TouchableOpacity>

@@ -21,10 +21,8 @@ function CategoryPill({ item, selected, onPress }) {
 }
 
 function ProductCard({ item, navigation }) {
-  // primary_image is a full URL string returned by the API
   const imgUri = item.primary_image || `${BASE_URL}/images/placeholder.png`;
   const img = { uri: imgUri };
-
   const price = item.discount_price ?? item.price;
   return (
     <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ProductDetail', { id: item.id })}>
@@ -57,26 +55,21 @@ function ProductCard({ item, navigation }) {
 
 export default function HomeScreen({ navigation }) {
   const { user } = useAuth();
-  const bcastLoadedRef = React.useRef(false);
   const [categories, setCategories] = useState([]);
   const [products, setProducts]     = useState([]);
   const [catId, setCatId]           = useState(null);
   const [search, setSearch]         = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const searchTimer = useRef(null);
+  const [submittedSearch, setSubmittedSearch] = useState('');
   const [page, setPage]             = useState(1);
   const [lastPage, setLastPage]     = useState(1);
   const [loading, setLoading]       = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  // Recommendations
   const [recommendations, setRecommendations] = useState([]);
   const [trending, setTrending] = useState([]);
-  const [recsLoading, setRecsLoading] = useState(false);
-
-  // Broadcast messages
   const [bcastQueue, setBcastQueue] = useState([]);
   const [bcastIdx,   setBcastIdx]   = useState(0);
   const [bcastOpen,  setBcastOpen]  = useState(false);
+  const inputRef = useRef(null);
 
   const fetchCategories = async () => {
     try {
@@ -100,24 +93,20 @@ export default function HomeScreen({ navigation }) {
   }, []);
 
   const fetchRecommendations = async () => {
-    setRecsLoading(true);
     try {
       const res = await client.get('/recommendations');
       setRecommendations(res.data.recommended || []);
       setTrending(res.data.trending || []);
     } catch (e) {
       console.warn('[DropStore] Recommendations error:', e?.response?.status, e?.message);
-    } finally {
-      setRecsLoading(false);
     }
   };
 
-    useEffect(() => {
+  useEffect(() => {
     fetchCategories();
-    fetchRecommendations();          // load recommendations on first mount
-    // Focus listener ensures popup fires even when tab was already active
+    fetchRecommendations();
     const unsubscribe = navigation.addListener('focus', () => {
-      if (!user) return; // guest — skip, route requires auth
+      if (!user) return;
       loadBroadcastMessages();
     });
     return unsubscribe;
@@ -160,41 +149,35 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  // Fetch when category or submittedSearch changes
   useEffect(() => {
     setPage(1);
     setProducts([]);
-    fetchProducts({ reset: true, currentPage: 1, currentCatId: catId, currentSearch: debouncedSearch });
-  }, [catId, debouncedSearch]);
+    fetchProducts({ reset: true, currentPage: 1, currentCatId: catId, currentSearch: submittedSearch });
+  }, [catId, submittedSearch]);
 
-  const onSearchChange = (text) => {
-    setSearch(text);
-    // Debounce: fire 500 ms after the user stops typing
-    clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => setDebouncedSearch(text), 500);
+  // ── SIMPLE SEARCH ──
+  const doSearch = () => {
+    setSubmittedSearch(search);
   };
 
-  const onSearchClear = () => {
-    clearTimeout(searchTimer.current);
+  const doClear = () => {
     setSearch('');
-    setDebouncedSearch('');
-  };
-
-  const onSearchSubmit = () => {
-    clearTimeout(searchTimer.current);
-    setDebouncedSearch(search);
+    setSubmittedSearch('');
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
     setPage(1);
     setProducts([]);
-    await fetchProducts({ reset: true, currentPage: 1, currentCatId: catId, currentSearch: debouncedSearch });
+    await fetchProducts({ reset: true, currentPage: 1, currentCatId: catId, currentSearch: submittedSearch });
     fetchRecommendations();
     setRefreshing(false);
   };
 
-  // Render recommendation row (landscape horizontal scroll)
-  const renderRecommendationRow = ({ item, index }) => {
+  const showHeader = !catId && !submittedSearch;
+
+  const renderRecommendationRow = ({ item }) => {
     const subcategory = item.subcategory;
     const products = item.products || [];
     return (
@@ -230,7 +213,6 @@ export default function HomeScreen({ navigation }) {
     );
   };
 
-  // Render trending product (normal grid)
   const renderTrendingItem = ({ item }) => {
     return (
       <TouchableOpacity style={styles.trendCard} onPress={() => navigation.navigate('ProductDetail', { id: item.id })}>
@@ -252,36 +234,37 @@ export default function HomeScreen({ navigation }) {
 
   const loadMore = () => {
     if (page <= lastPage && !loading) {
-      fetchProducts({ reset: false, currentPage: page, currentCatId: catId, currentSearch: debouncedSearch });
+      fetchProducts({ reset: false, currentPage: page, currentCatId: catId, currentSearch: submittedSearch });
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Search bar */}
+      {/* ─── SIMPLE SEARCH BAR ─── */}
       <View style={styles.searchWrap}>
         <View style={styles.searchRow}>
           <TextInput
+            ref={inputRef}
             style={styles.search}
             value={search}
-            onChangeText={onSearchChange}
-            placeholder="Search products, brands, vendors..."
+            onChangeText={setSearch}
+            placeholder="Search products..."
             placeholderTextColor="#aaa"
             returnKeyType="search"
-            onSubmitEditing={onSearchSubmit}
+            onSubmitEditing={doSearch}
           />
           {search.length > 0 && (
-            <TouchableOpacity onPress={onSearchClear} style={styles.clearBtn} activeOpacity={0.7}>
+            <TouchableOpacity onPress={doClear} style={styles.clearBtn} activeOpacity={0.7}>
               <MaterialCommunityIcons name="close" size={18} color="#999" />
             </TouchableOpacity>
           )}
-          <TouchableOpacity onPress={onSearchSubmit} style={styles.searchBtn} activeOpacity={0.7}>
+          <TouchableOpacity onPress={doSearch} style={styles.searchBtn} activeOpacity={0.7}>
             <MaterialCommunityIcons name="magnify" size={20} color={COLORS.primary} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Category pills */}
+      {/* ─── CATEGORY PILLS ─── */}
       <View style={styles.catsContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cats} contentContainerStyle={{ paddingHorizontal: 14, gap: 10, paddingVertical: 12 }}>
           {categories.map(c => (
@@ -290,7 +273,7 @@ export default function HomeScreen({ navigation }) {
         </ScrollView>
       </View>
 
-      {/* Products grid */}
+      {/* ─── PRODUCTS ─── */}
       <FlatList
         data={products}
         keyExtractor={i => String(i.id)}
@@ -305,20 +288,19 @@ export default function HomeScreen({ navigation }) {
         ListFooterComponent={() => loading ? <ActivityIndicator color={COLORS.primary} style={{ margin: 16 }} /> : null}
         ListEmptyComponent={() => !loading ? <Text style={styles.empty}>No products found.</Text> : null}
         ListHeaderComponent={
-          // Only show recommendations on homepage (no category/search filter)
-          !catId && !debouncedSearch ? (
+          showHeader ? (
             <View>
-              {/* Recommended for you section */}
               {recommendations.length > 0 && (
                 <View>
                   <View style={styles.recSectionTitle}>
                     <MaterialCommunityIcons name="star-four" size={18} color={COLORS.primary} />
                     <Text style={styles.recSectionTitleText}>Recommended for You</Text>
                   </View>
-                  {recommendations.slice(0, 3).map((rec, idx) => renderRecommendationRow({ item: rec, index: idx }))}
+                  {recommendations.slice(0, 3).map((rec, idx) => (
+                    <View key={idx}>{renderRecommendationRow({ item: rec })}</View>
+                  ))}
                 </View>
               )}
-              {/* Trends section */}
               {trending.length > 0 && (
                 <View style={styles.trendsSection}>
                   <View style={styles.recSectionTitle}>
@@ -326,7 +308,9 @@ export default function HomeScreen({ navigation }) {
                     <Text style={[styles.recSectionTitleText, { color: '#ef4444' }]}>Trends</Text>
                   </View>
                   <View style={styles.trendsGrid}>
-                    {trending.slice(0, 12).map((item) => renderTrendingItem({ item }))}
+                    {trending.slice(0, 12).map((item, idx) => (
+                      <View key={idx}>{renderTrendingItem({ item })}</View>
+                    ))}
                   </View>
                 </View>
               )}
@@ -335,7 +319,7 @@ export default function HomeScreen({ navigation }) {
         }
       />
 
-      {/* ── Broadcast Message Popup ── */}
+      {/* ─── BROADCAST MODAL ─── */}
       <Modal visible={bcastOpen} transparent animationType="fade" onRequestClose={dismissBcast}>
         <View style={styles.bcastOverlay}>
           <View style={styles.bcastCard}>
@@ -379,9 +363,7 @@ const styles = StyleSheet.create({
   searchRow    : { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f6f7fb', borderRadius: 14, paddingHorizontal: 14, gap: 4, borderWidth: 1.5, borderColor: '#e8eaf2' },
   search       : { flex: 1, paddingVertical: 12, fontSize: 15, color: '#1a1a1a' },
   searchBtn    : { padding: 8 },
-  searchBtnText: { fontSize: 17 },
   clearBtn     : { padding: 6, marginRight: 2 },
-  clearBtnText : { fontSize: 13, color: '#94a3b8', fontWeight: '700' },
   catsContainer: { backgroundColor: '#fff', borderBottomWidth: 1.5, borderBottomColor: '#e8eaf2', elevation: 2 },
   cats         : { backgroundColor: '#fff' },
   pill         : { borderWidth: 2, borderColor: '#d1d5db', borderRadius: 24, paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#f9fafb', minHeight: 44 },
@@ -403,8 +385,6 @@ const styles = StyleSheet.create({
   verifiedBadge: { backgroundColor: '#f0fdf4', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: '#86efac' },
   verifiedText : { fontSize: 9, color: '#16a34a', fontWeight: '800' },
   empty        : { textAlign: 'center', color: '#aaa', marginTop: 40, fontSize: 15 },
-
-  // Broadcast message popup
   bcastOverlay  : { flex: 1, backgroundColor: 'rgba(15,23,42,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 },
   bcastCard     : { backgroundColor: '#fff', borderRadius: 20, width: '100%', maxWidth: 420, overflow: 'hidden', elevation: 10 },
   bcastHeader   : { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 20, paddingBottom: 0 },
@@ -419,8 +399,6 @@ const styles = StyleSheet.create({
   bcastCounter  : { fontSize: 12, color: '#94a3b8', fontWeight: '600', marginRight: 'auto' },
   bcastBtn      : { backgroundColor: COLORS.primary, borderRadius: 12, paddingVertical: 11, paddingHorizontal: 22 },
   bcastBtnText  : { color: '#fff', fontWeight: '700', fontSize: 14 },
-
-  // Recommendations section
   recSectionTitle: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 16 },
   recSectionTitleText: { fontSize: 18, fontWeight: '800', color: '#0f172a', marginLeft: 4 },
   recSection: { marginBottom: 20 },
@@ -440,8 +418,6 @@ const styles = StyleSheet.create({
   recCardBody: { padding: 8 },
   recCardName: { fontSize: 11, fontWeight: '600', color: '#1e293b', lineHeight: 15, marginBottom: 4 },
   recCardPrice: { fontSize: 13, fontWeight: '800', color: COLORS.primary },
-
-  // Trends section
   trendsSection: { marginTop: 8, marginBottom: 20 },
   trendsGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 10, gap: 10 },
   trendCard: { width: (SCREEN_WIDTH - 40) / 2, backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', elevation: 3, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },

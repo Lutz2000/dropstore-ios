@@ -23,7 +23,6 @@ export default function CartScreen({ navigation }) {
       const res = await client.get('/cart');
       setItems(res.data.data || res.data);
     } catch (e) {
-      
     } finally { setLoading(false); }
   }, []);
 

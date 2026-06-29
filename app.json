@@ -2,11 +2,11 @@
   "expo": {
     "name": "DropStore",
     "slug": "dropstore",
-    "version": "1.0.2",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "scheme": "dropstore",
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -16,11 +16,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.dropmartug.dropstore",
-      "buildNumber": "18",
+      "buildNumber": "2",
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "DropStore needs access to your photo library so you can upload product images and profile pictures.",
-        "NSCameraUsageDescription": "DropStore needs access to your camera so you can take photos for product images and your profile.",
-        "NSMicrophoneUsageDescription": "DropStore needs access to your microphone for video recordings.",
+        "NSPhotoLibraryUsageDescription": "DropStore needs access to your photo library to upload product images and profile pictures.",
+        "NSCameraUsageDescription": "DropStore needs access to your camera to take photos for products.",
+        "NSMicrophoneUsageDescription": "DropStore needs microphone access for video recordings.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -29,7 +29,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.dropmartug.dropstore",
+      "package": "com.dropstore",
       "versionCode": 1,
       "edgeToEdgeEnabled": true,
       "permissions": [
@@ -42,17 +42,17 @@
     "extra": {
       "apiUrl": "https://dropstore.click/public/api",
       "eas": {
-        "projectId": "c13a70eb-9848-424b-8d9d-4d6b02a3f878"
+        "projectId": "6baa36ef-4150-428e-b2d0-9299cc6336f8"
       }
     },
-    "owner": "lutaaya01",
+    "owner": "quassim",
     "plugins": [
       "expo-secure-store",
       [
         "expo-image-picker",
         {
-          "photosPermission": "DropStore needs access to your photo library so you can upload product images and profile pictures.",
-          "cameraPermission": "DropStore needs access to your camera so you can take photos."
+          "photosPermission": "DropStore needs access to your photo library to upload product images and profile pictures.",
+          "cameraPermission": "DropStore needs access to your camera to take photos."
         }
       ]
     ],
