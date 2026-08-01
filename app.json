@@ -14,7 +14,7 @@
       "backgroundColor": "#1a1a1a"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.dropmartug.dropstore",
       "buildNumber": "2",
       "infoPlist": {
